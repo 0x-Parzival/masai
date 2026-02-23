@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metrics & Roadmap - Recruit-AI</title>
+  <style>
+    body { margin: 0; background: #ffffff; color: #152026; font-family: Arial, sans-serif; }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 20px; }
+    h1, h2 { margin: 0 0 10px; }
+    .card { border: 1px solid #d9e2e0; border-radius: 12px; padding: 16px; margin-bottom: 14px; background: #fbfdfd; }
+    li, p { line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Metrics & Roadmap (1 Page)</h1>
+
+    <section class="card">
+      <h2>Success Metrics (North-Star + Operating)</h2>
+      <ol>
+        <li><strong>Screening Time Reduction:</strong> Reduce average first-pass screening effort per role by at least 60%.</li>
+        <li><strong>Time-to-Shortlist:</strong> Cut time from application intake to shortlist creation from 3-5 days to under 24 hours.</li>
+        <li><strong>Interview Yield:</strong> Maintain shortlist quality with at least 35% of AI-recommended candidates moving to interviews.</li>
+        <li><strong>Recruiter Trust Score:</strong> Achieve >= 80% recruiter agreement with recommended action during pilot.</li>
+        <li><strong>Candidate Response SLA:</strong> Send initial decision/update to 90% of applicants within 48 hours.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Product Roadmap</h2>
+      <p><strong>Phase 1 (Week 1):</strong> Core MVP</p>
+      <ul>
+        <li>JD + resume ingestion</li>
+        <li>Deterministic weighted scoring and recommendation</li>
+        <li>n8n sort-and-bucket workflow</li>
+      </ul>
+
+      <p><strong>Phase 2 (Weeks 2-3):</strong> Automation + Reliability</p>
+      <ul>
+        <li>PDF parsing with OCR fallback</li>
+        <li>Persistent candidate scoring history</li>
+        <li>Bias review checkpoints and override logs</li>
+      </ul>
+
+      <p><strong>Phase 3 (Weeks 4-6):</strong> Integrations + Optimization</p>
+      <ul>
+        <li>ATS sync (Greenhouse/Lever webhook adapter)</li>
+        <li>Email + calendar auto-scheduling agent</li>
+        <li>Role-based rubric calibration and A/B score tuning</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

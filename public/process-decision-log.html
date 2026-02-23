@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Process & Decision Log - Recruit-AI</title>
+  <style>
+    body { margin: 0; background: #f5f8fb; color: #152026; font-family: Arial, sans-serif; }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 20px; }
+    h1, h2 { margin: 0 0 10px; }
+    .card { background: #fff; border: 1px solid #d8e1ea; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    li, p { line-height: 1.55; }
+    code { background: #eef4fb; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Process & Decision Log</h1>
+
+    <section class="card">
+      <h2>Key Design Choices</h2>
+      <ol>
+        <li><strong>Deterministic scoring first:</strong> Chosen over free-form LLM scoring to reduce recruiter trust issues and simplify QA.</li>
+        <li><strong>n8n for orchestration:</strong> Selected for low-code automation, clear visual workflow, and rapid SMB deployment.</li>
+        <li><strong>Single endpoint contract:</strong> <code>/api/screen</code> kept minimal to speed frontend/backend integration.</li>
+        <li><strong>Explainability by default:</strong> Every result includes summary, strengths, and gaps to support final human judgment.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Prompt Iteration Notes</h2>
+      <ul>
+        <li><strong>Iteration 1:</strong> Open-ended evaluation prompt produced inconsistent scoring.</li>
+        <li><strong>Iteration 2:</strong> Added strict weights and integer scoring; consistency improved significantly.</li>
+        <li><strong>Iteration 3:</strong> Enforced strict JSON schema + explicit action labels (Interview/Hold/Reject).</li>
+        <li><strong>Iteration 4:</strong> Added missing-skills and strengths extraction to improve recruiter readability.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>What We Learned</h2>
+      <ul>
+        <li>SMB users prioritize speed and clarity over model sophistication.</li>
+        <li>Transparent scoring creates stronger adoption than black-box ranking.</li>
+        <li>Most operational delays happen before interviews, so triage automation has immediate ROI.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Tradeoffs Accepted</h2>
+      <ul>
+        <li>Resume parsing is text-focused in MVP; advanced PDF/OCR handling deferred.</li>
+        <li>Bias and fairness analytics are flagged for next phase, not fully solved in week 1.</li>
+        <li>ATS integrations postponed to keep MVP deployable and demo-ready quickly.</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

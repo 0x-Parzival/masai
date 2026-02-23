@@ -43,6 +43,29 @@
       color: var(--muted);
     }
 
+    .doc-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 18px;
+    }
+
+    .doc-btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #0b5f58;
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1px solid #084842;
+    }
+
+    .doc-btn:hover {
+      filter: brightness(0.96);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -167,6 +190,12 @@
   <main class="container">
     <h1>Recruit-AI</h1>
     <p class="sub">Resume screening + interview recommendation for SMB recruiting teams.</p>
+    <nav class="doc-links" aria-label="Project Documents">
+      <a class="doc-btn" href="/backend-agent-workflow" target="_blank" rel="noreferrer">Backend Agent Workflow</a>
+      <a class="doc-btn" href="/metrics-roadmap" target="_blank" rel="noreferrer">Metrics & Roadmap</a>
+      <a class="doc-btn" href="/process-decision-log" target="_blank" rel="noreferrer">Process & Decision Log</a>
+      <a class="doc-btn" href="/sarah-persona" target="_blank" rel="noreferrer">Persona & Market Research</a>
+    </nav>
 
     <section class="grid">
       <article class="card">

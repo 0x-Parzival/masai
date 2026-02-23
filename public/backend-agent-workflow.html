@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Backend Agent Workflow - Recruit-AI</title>
+  <style>
+    body { margin: 0; background: #f7faf9; color: #122025; font-family: Arial, sans-serif; }
+    main { max-width: 980px; margin: 0 auto; padding: 28px 20px; }
+    h1, h2 { margin: 0 0 12px; }
+    p, li { line-height: 1.55; }
+    .card { background: #fff; border: 1px solid #d9e2e0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    code { background: #edf3f2; padding: 2px 6px; border-radius: 6px; }
+    a { color: #0d6b63; }
+    pre { overflow: auto; background: #101418; color: #d6f5ea; border-radius: 10px; padding: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Backend Agent Workflow</h1>
+    <div class="card">
+      <p><strong>Public n8n workflow implementation file:</strong>
+        <a href="https://github.com/0x-Parzival/masai/blob/main/n8n/recruit_ai_resume_sort_recommend.workflow.json" target="_blank" rel="noreferrer">recruit_ai_resume_sort_recommend.workflow.json</a>
+      </p>
+      <p><strong>Raw JSON URL (for direct import/download):</strong>
+        <a href="https://raw.githubusercontent.com/0x-Parzival/masai/main/n8n/recruit_ai_resume_sort_recommend.workflow.json" target="_blank" rel="noreferrer">raw workflow JSON</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>How The Agent Logic Works</h2>
+      <ol>
+        <li><strong>Inbound Webhook:</strong> Receives role title, JD text, and candidate resume list.</li>
+        <li><strong>Score + Sort Candidates:</strong> Deterministic scoring using fixed weights:
+          Skills 40, Experience 25, Tools 20, Soft Skills 15.</li>
+        <li><strong>Recommendation Rules:</strong> Interview if score >= 75, Hold if 50-74, Reject if < 50.</li>
+        <li><strong>Output:</strong> Ranked candidates + grouped buckets (<code>Interview</code>, <code>Hold</code>, <code>Reject</code>).</li>
+        <li><strong>Respond Node:</strong> Returns structured JSON to frontend/ATS.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>Workflow Steps (Visual Mapping)</h2>
+      <pre>Webhook --> Code (Score + Sort) --> RespondToWebhook</pre>
+      <p>Import the JSON into n8n and expose endpoint: <code>POST /recruit-ai/sort-recommend</code>.</p>
+    </div>
+  </main>
+</body>
+</html>
