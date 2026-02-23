@@ -5,6 +5,8 @@
   "description": "Recruit-AI proof of concept for resume screening and interview recommendation",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node -e \"const {scoreCandidate}=require('./lib/scoring'); const out=scoreCandidate({jobDescription:'Need React TypeScript AWS communication', resumeText:'React TypeScript AWS communication'}); if(typeof out.overall_score!=='number'){process.exit(1)}; console.log('check-ok');\""
   }
 }

@@ -11,6 +11,29 @@ npm start
 
 Open: http://localhost:3000
 
+## Deploy On Vercel
+
+This repo is now Vercel-ready:
+- Static pages are served from `public/`
+- API runs as serverless functions in `api/`
+- Config is in `vercel.json`
+
+Endpoints after deploy:
+- `GET /api/health`
+- `POST /api/screen`
+
+Pages after deploy:
+- `/` (Recruit-AI app)
+- `/sarah-persona` (Persona text page)
+
+Deploy commands:
+
+```bash
+npm i -g vercel
+vercel
+vercel --prod
+```
+
 ## n8n Resume Sort + Recommend
 
 Import workflow:
