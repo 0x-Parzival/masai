@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruit-AI POC</title>
+  <style>
+    :root {
+      --bg: #f6f5f2;
+      --panel: #ffffff;
+      --ink: #1d1f21;
+      --muted: #4f5965;
+      --accent: #0f766e;
+      --accent-soft: #d9f4f1;
+      --warn: #c2410c;
+      --ok: #166534;
+      --hold: #854d0e;
+      --reject: #991b1b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 20% 10%, #dff7ee 0%, var(--bg) 50%) fixed;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+    }
+
+    p.sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #e4e7eb;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    textarea, input[type="text"], input[type="file"] {
+      width: 100%;
+      border: 1px solid #d2d9e1;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: #fcfdff;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      margin-top: 14px;
+      padding: 11px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { filter: brightness(0.95); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      border-radius: 12px;
+      background: var(--accent-soft);
+      padding: 12px;
+    }
+
+    .metric small {
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric b { font-size: 1.25rem; }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin: 8px 0;
+    }
+
+    .interview { background: #d1fae5; color: var(--ok); }
+    .hold { background: #fef3c7; color: var(--hold); }
+    .reject { background: #fee2e2; color: var(--reject); }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+
+    pre {
+      background: #101418;
+      color: #d6f5ea;
+      padding: 12px;
+      border-radius: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid, .row, .scores {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Recruit-AI</h1>
+    <p class="sub">Resume screening + interview recommendation for SMB recruiting teams.</p>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Input</h2>
+        <label for="roleTitle">Role Title</label>
+        <input id="roleTitle" type="text" placeholder="e.g., Senior Frontend Engineer" />
+
+        <label for="candidateName">Candidate Name (Optional)</label>
+        <input id="candidateName" type="text" placeholder="e.g., Alex Kim" />
+
+        <label for="jdText">Job Description (Paste)</label>
+        <textarea id="jdText" placeholder="Paste the JD here..."></textarea>
+
+        <label for="resumeText">Resume Text (Paste)</label>
+        <textarea id="resumeText" placeholder="Paste resume text here..."></textarea>
+
+        <label for="jdFile">Or upload JD/Resume .txt files (fills the text boxes)</label>
+        <div class="row">
+          <input id="jdFile" type="file" accept=".txt,.md,.csv" />
+          <input id="resumeFile" type="file" accept=".txt,.md,.csv" />
+        </div>
+
+        <label>
+          <input id="emailDraft" type="checkbox" /> Include interview email draft
+        </label>
+
+        <button id="analyzeBtn">Analyze Candidate</button>
+        <p class="muted">POC note: PDF extraction is left to the backend workflow layer (n8n + parser) in production.</p>
+      </article>
+
+      <article class="card">
+        <h2>Result Dashboard</h2>
+        <div id="emptyState" class="muted">Run analysis to see scores and recommendation.</div>
+        <div id="result" style="display:none">
+          <div class="scores">
+            <div class="metric"><small>Overall</small><b id="overall">0</b>/100</div>
+            <div class="metric"><small>Skill Match</small><b id="skillMatch">0</b>/40</div>
+            <div class="metric"><small>Experience</small><b id="experience">0</b>/25</div>
+            <div class="metric"><small>Tools/Tech</small><b id="tools">0</b>/20</div>
+            <div class="metric"><small>Soft Skills</small><b id="soft">0</b>/15</div>
+          </div>
+
+          <div id="actionTag" class="tag hold">Hold</div>
+          <p id="summary"></p>
+
+          <strong>Strengths</strong>
+          <ul id="strengths"></ul>
+
+          <strong>Gaps</strong>
+          <ul id="gaps"></ul>
+
+          <div id="emailWrap" style="display:none">
+            <strong>Interview Email Draft</strong>
+            <pre id="emailDraftOut"></pre>
+          </div>
+
+          <details>
+            <summary>LLM Prompt Template</summary>
+            <pre id="llmPrompt"></pre>
+          </details>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const jdTextEl = document.getElementById('jdText');
+    const resumeTextEl = document.getElementById('resumeText');
+    const jdFileEl = document.getElementById('jdFile');
+    const resumeFileEl = document.getElementById('resumeFile');
+    const btn = document.getElementById('analyzeBtn');
+
+    function readFileIntoTextarea(input, textarea) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        textarea.value = String(reader.result || '');
+      };
+      reader.readAsText(file);
+    }
+
+    jdFileEl.addEventListener('change', () => readFileIntoTextarea(jdFileEl, jdTextEl));
+    resumeFileEl.addEventListener('change', () => readFileIntoTextarea(resumeFileEl, resumeTextEl));
+
+    function listToUl(id, items) {
+      const ul = document.getElementById(id);
+      ul.innerHTML = '';
+      (items || []).forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+      if (!ul.childNodes.length) {
+        const li = document.createElement('li');
+        li.textContent = 'None detected';
+        ul.appendChild(li);
+      }
+    }
+
+    function actionClass(action) {
+      if (action === 'Interview') return 'interview';
+      if (action === 'Reject') return 'reject';
+      return 'hold';
+    }
+
+    btn.addEventListener('click', async () => {
+      const payload = {
+        roleTitle: document.getElementById('roleTitle').value,
+        candidateName: document.getElementById('candidateName').value,
+        jobDescription: jdTextEl.value,
+        resumeText: resumeTextEl.value,
+        includeEmailDraft: document.getElementById('emailDraft').checked
+      };
+
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+
+      try {
+        const res = await fetch('/api/screen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Failed to analyze candidate');
+
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+
+        document.getElementById('overall').textContent = data.overall_score;
+        document.getElementById('skillMatch').textContent = data.skill_match;
+        document.getElementById('experience').textContent = data.experience_score;
+        document.getElementById('tools').textContent = data.tools_score;
+        document.getElementById('soft').textContent = data.soft_skill_score;
+        document.getElementById('summary').textContent = data.summary;
+
+        const tag = document.getElementById('actionTag');
+        tag.textContent = data.recommended_action;
+        tag.className = `tag ${actionClass(data.recommended_action)}`;
+
+        listToUl('strengths', data.strengths || []);
+        listToUl('gaps', data.gaps || []);
+
+        const emailWrap = document.getElementById('emailWrap');
+        if (data.interview_email_draft) {
+          emailWrap.style.display = 'block';
+          document.getElementById('emailDraftOut').textContent = data.interview_email_draft;
+        } else {
+          emailWrap.style.display = 'none';
+        }
+
+        document.getElementById('llmPrompt').textContent = data.llm_prompt_template || '';
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Analyze Candidate';
+      }
+    });
+  </script>
+</body>
+</html>

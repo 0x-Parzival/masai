@@ -1,0 +1,80 @@
+{
+  "name": "Recruit-AI Resume Sort & Recommend",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "recruit-ai/sort-recommend",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Inbound Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        260,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst roleTitle = body.roleTitle || 'Open Role';\nconst jobDescription = String(body.jobDescription || '');\nconst candidates = Array.isArray(body.candidates) ? body.candidates : [];\n\nif (!jobDescription.trim()) {\n  throw new Error('jobDescription is required');\n}\nif (!candidates.length) {\n  throw new Error('candidates[] is required');\n}\n\nconst STOP_WORDS = new Set([\n  'and','the','for','with','from','that','this','have','has','are','you',\n  'your','our','will','can','not','all','any','who','what','when','where',\n  'how','their','they','them','into','onto','about','over','under','within',\n  'a','an','to','of','in','on','is','as','at','be','by','or','if','it',\n  'we','us','i','me','my','he','she','his','her','do','did','done','was',\n  'were','been','than','then','also','per','via','etc','using',\n  'need','needs','required','preferred','must','nice','plus','role','years','year'\n]);\n\nconst TOOL_KEYWORDS = [\n  'javascript','typescript','python','java','go','react','next.js','node.js',\n  'aws','gcp','azure','docker','kubernetes','sql','postgresql','mysql','mongodb',\n  'git','jira','figma','salesforce','hubspot','tableau','excel','powerbi'\n];\n\nconst SOFT_SKILL_KEYWORDS = [\n  'communication','collaboration','leadership','ownership','stakeholder',\n  'problem solving','adaptability','mentoring','team player','cross-functional'\n];\n\nfunction tokenize(text) {\n  return String(text || '')\n    .toLowerCase()\n    .replace(/[^a-z0-9+.#\\-\\s]/g, ' ')\n    .split(/\\s+/)\n    .map((t) => t.replace(/^[.+#-]+|[.+#-]+$/g, ''))\n    .filter(Boolean)\n    .filter((t) => t.length > 2)\n    .filter((t) => !STOP_WORDS.has(t));\n}\n\nfunction unique(arr) {\n  return [...new Set(arr)];\n}\n\nfunction extractYears(text) {\n  const matches = String(text || '').match(/(\\d{1,2})\\+?\\s*(years|yrs)/gi) || [];\n  const nums = matches\n    .map((m) => parseInt((m.match(/\\d{1,2}/) || ['0'])[0], 10))\n    .filter(Boolean);\n  return nums.length ? Math.max(...nums) : null;\n}\n\nfunction coverageScore(jdTokens, resumeTokens) {\n  if (!jdTokens.length) return 0;\n  const resumeSet = new Set(resumeTokens);\n  const hits = jdTokens.filter((token) => resumeSet.has(token)).length;\n  return Math.round((hits / jdTokens.length) * 40);\n}\n\nfunction experienceScore(jd, resume) {\n  const jdYears = extractYears(jd);\n  const resumeYears = extractYears(resume);\n  if (!jdYears && !resumeYears) return 15;\n  if (jdYears && !resumeYears) return 10;\n  if (!jdYears && resumeYears) return 18;\n  if (resumeYears >= jdYears) return 25;\n  return Math.max(8, Math.round((resumeYears / jdYears) * 25));\n}\n\nfunction toolsScore(jd, resume) {\n  const jdLower = jd.toLowerCase();\n  const resumeLower = resume.toLowerCase();\n  const requiredTools = TOOL_KEYWORDS.filter((k) => jdLower.includes(k));\n  if (!requiredTools.length) return { score: 10, missing: [] };\n  const matched = requiredTools.filter((k) => resumeLower.includes(k));\n  return {\n    score: Math.round((matched.length / requiredTools.length) * 20),\n    missing: requiredTools.filter((k) => !resumeLower.includes(k))\n  };\n}\n\nfunction softSkillScore(jd, resume) {\n  const jdLower = jd.toLowerCase();\n  const resumeLower = resume.toLowerCase();\n  const requiredSoft = SOFT_SKILL_KEYWORDS.filter((k) => jdLower.includes(k));\n  const matched = requiredSoft.filter((k) => resumeLower.includes(k));\n  if (!requiredSoft.length) {\n    const inferred = SOFT_SKILL_KEYWORDS.filter((k) => resumeLower.includes(k)).length;\n    return Math.min(15, Math.max(6, inferred * 2));\n  }\n  return Math.round((matched.length / requiredSoft.length) * 15);\n}\n\nfunction recommend(total) {\n  if (total >= 75) return 'Interview';\n  if (total < 50) return 'Reject';\n  return 'Hold';\n}\n\nconst jdTokens = unique(tokenize(jobDescription));\nconst ranked = candidates.map((candidate, idx) => {\n  const candidateName = candidate.name || `Candidate-${idx + 1}`;\n  const resumeText = String(candidate.resumeText || '');\n  const resumeTokens = unique(tokenize(resumeText));\n  const skill_match = coverageScore(jdTokens, resumeTokens);\n  const experience_score = experienceScore(jobDescription, resumeText);\n  const tools = toolsScore(jobDescription, resumeText);\n  const soft_skill_score = softSkillScore(jobDescription, resumeText);\n  const overall_score = Math.max(0, Math.min(100, skill_match + experience_score + tools.score + soft_skill_score));\n  const strengths = jdTokens.filter((t) => resumeTokens.includes(t)).slice(0, 5);\n  const gaps = jdTokens.filter((t) => !resumeTokens.includes(t)).slice(0, 5).concat(tools.missing.slice(0, 2)).slice(0, 5);\n\n  return {\n    candidate_name: candidateName,\n    overall_score,\n    skill_match,\n    experience_score,\n    tools_score: tools.score,\n    soft_skill_score,\n    summary: `Scored ${overall_score}/100 for ${roleTitle} with ${skill_match}/40 skills, ${experience_score}/25 experience, ${tools.score}/20 tools, ${soft_skill_score}/15 soft skills.`,\n    strengths,\n    gaps,\n    recommended_action: recommend(overall_score)\n  };\n});\n\nranked.sort((a, b) => b.overall_score - a.overall_score);\n\nconst buckets = { Interview: [], Hold: [], Reject: [] };\nfor (const row of ranked) {\n  buckets[row.recommended_action].push(row);\n}\n\nreturn [{\n  json: {\n    role_title: roleTitle,\n    total_candidates: ranked.length,\n    ranked_candidates: ranked,\n    recommendation_buckets: buckets\n  }\n}];"
+      },
+      "id": "2",
+      "name": "Score + Sort Candidates",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "3",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        860,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Inbound Webhook": {
+      "main": [
+        [
+          {
+            "node": "Score + Sort Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score + Sort Candidates": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "recruit-ai-poc-v1"
+}

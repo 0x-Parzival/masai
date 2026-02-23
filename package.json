@@ -1,0 +1,10 @@
+{
+  "name": "recruit-ai-poc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Recruit-AI proof of concept for resume screening and interview recommendation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
